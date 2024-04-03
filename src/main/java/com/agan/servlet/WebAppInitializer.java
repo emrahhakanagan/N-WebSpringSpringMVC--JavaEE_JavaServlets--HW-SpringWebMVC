@@ -1,5 +1,6 @@
-package com.agan.configuration;
+package com.agan.servlet;
 
+import com.agan.configuration.WebConfig;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
