@@ -15,14 +15,18 @@ public class PostRepository {
   private final AtomicLong currentId = new AtomicLong(0);
 
   public List<Post> all() {
-    return posts.values().stream().collect(Collectors.toList());
+    return posts.values().stream()
+            .filter(post -> !post.isRemoved())
+            .collect(Collectors.toList());
   }
 
   public Optional<Post> getById(long id) {
-    return Optional.ofNullable(posts.get(id));
+    return Optional.ofNullable(posts.get(id))
+            .filter(post -> !post.isRemoved());
     }
 
   public Post save(Post post) {
+    // TODO need to change here ...
     long id = post.getId();
 
     posts.compute(id, (currentId, currentPost) -> {
@@ -44,6 +48,7 @@ public class PostRepository {
   }
 
   public void removeById(long id) {
+    // TODO need to change here ...
     posts.remove(id);
   }
 }
