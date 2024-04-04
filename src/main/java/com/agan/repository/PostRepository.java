@@ -1,5 +1,6 @@
 package com.agan.repository;
 
+import com.agan.exception.NotFoundException;
 import com.agan.model.Post;
 import org.springframework.stereotype.Repository;
 
@@ -15,35 +16,30 @@ public class PostRepository {
   private final AtomicLong currentId = new AtomicLong(0);
 
   public List<Post> all() {
-    return posts.values().stream().collect(Collectors.toList());
+    return posts.values().stream()
+            .filter(post -> !post.isRemoved())
+            .collect(Collectors.toList());
   }
 
   public Optional<Post> getById(long id) {
-    return Optional.ofNullable(posts.get(id));
+    return Optional.ofNullable(posts.get(id))
+            .filter(post -> !post.isRemoved());
     }
 
   public Post save(Post post) {
-    long id = post.getId();
-
-    posts.compute(id, (currentId, currentPost) -> {
-      if (post.getId() <= 0) {
-        long idNewPost = this.currentId.getAndDecrement();
-        post.setId(idNewPost);
-        return post;
-      } else {
-        if (currentPost != null) {
-          currentPost.setContent(post.getContent());
-          return currentPost;
-        } else {
-          return post;
-        }
+    return posts.computeIfPresent(post.getId(), (id, existingPost) -> {
+      if (existingPost.isRemoved()) {
+        throw new NotFoundException("Post with id " + id + " is marked as removed and cannot be updated.");
       }
+      existingPost.setContent(post.getContent());
+      return existingPost;
     });
-
-    return post;
   }
 
   public void removeById(long id) {
-    posts.remove(id);
+    posts.computeIfPresent(id, (key, post) -> {
+      post.setRemoved(true);
+      return post;
+    });
   }
 }
